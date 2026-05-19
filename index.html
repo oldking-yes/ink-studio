@@ -1720,30 +1720,44 @@ footer {
   <div class="poetry-controls">
     <div class="control-group">
       <label>标题（限 10 字）</label>
-      <input type="text" id="poemTitle" maxlength="10" placeholder="如：山居秋暝">
+      <input type="text" id="poemTitle" maxlength="10" placeholder="如：山居秋暝" value="无题">
     </div>
     <div class="control-group">
-      <label>诗句（限 28 字）</label>
-      <input type="text" id="poemText" maxlength="28" placeholder="如：空山新雨后，天气晚来秋">
+      <label>诗句（限 40 字）</label>
+      <input type="text" id="poemText" maxlength="40" placeholder="如：空山新雨后，天气晚来秋。" value="诗以言志，画以传情。">
     </div>
     <div class="control-group">
       <label>字体</label>
       <select id="poemFont">
-        <option value="serif">楷体</option>
-        <option value="cursive">行书</option>
-        <option value="monospace">隶书</option>
+        <option value="xingshu">行书</option>
+        <option value="kaishu">楷书</option>
+        <option value="caoshu">草书</option>
+        <option value="lishu">隶书</option>
       </select>
     </div>
     <div class="control-group">
       <label>文字颜色</label>
       <select id="poemColor">
         <option value="#1a1a1a">墨色</option>
-        <option value="#c23b22">朱砂</option>
+        <option value="#c43a1a">朱砂</option>
+        <option value="#1a3a5a">靛蓝</option>
       </select>
     </div>
     <div class="control-group">
       <label>落款署名</label>
-      <input type="text" id="poemAuthor" maxlength="8" placeholder="如：子轩">
+      <input type="text" id="poemAuthor" maxlength="8" placeholder="如：子轩" value="子轩">
+    </div>
+    <div class="control-group">
+      <label>印章文字</label>
+      <input type="text" id="sealText" maxlength="2" placeholder="如：墨" value="墨">
+    </div>
+    <div class="control-group">
+      <label>印章颜色</label>
+      <select id="sealColor">
+        <option value="#c43a1a">朱砂</option>
+        <option value="#1a1a1a">墨色</option>
+        <option value="#c9a84c">金泥</option>
+      </select>
     </div>
     <div class="control-group">
       <label>印章样式</label>
@@ -1757,6 +1771,8 @@ footer {
 
   <div class="poetry-preview">
     <canvas id="poetryCanvas" width="400" height="533"></canvas>
+    <!-- 高精度导出用隐藏画布 -->
+    <canvas id="exportCanvas" style="display:none" width="1200" height="1599"></canvas>
   </div>
 
   <div class="poetry-actions">
@@ -2281,86 +2297,100 @@ function incrementAICount() {
   updateStats();
 }
 
-// 渲染题诗
-function renderPoem() {
+// 渲染题诗（2x高清引擎）
+function renderPoem(useExportRes) {
   const canvas = document.getElementById('poetryCanvas');
-  const ctx = canvas.getContext('2d');
+  const scale = useExportRes ? 3 : 2;
   const w = canvas.width;
   const h = canvas.height;
 
-  const title = document.getElementById('poemTitle').value || '无题';
-  const poem = document.getElementById('poemText').value || '诗以言志';
-  const author = document.getElementById('poemAuthor').value || '墨客';
+  const exportScale = useExportRes ? scale : 1;
+  const drawW = w * exportScale;
+  const drawH = h * exportScale;
+  const targetCanvas = useExportRes ? document.getElementById('exportCanvas') : canvas;
+  if (!targetCanvas) return;
+  targetCanvas.width = drawW;
+  targetCanvas.height = drawH;
+  const ctx = targetCanvas.getContext('2d');
+  ctx.scale(exportScale, exportScale);
+
+  const title = document.getElementById('poemTitle').value || '\u65e0\u9898';
+  const poem = document.getElementById('poemText').value || '\u8bd7\u4ee5\u8a00\u5fd7';
+  const author = document.getElementById('poemAuthor').value || '\u5b50\u8f69';
   const fontStyle = document.getElementById('poemFont').value;
   const color = document.getElementById('poemColor').value;
   const seal = document.getElementById('sealStyle').value;
+  const sealTxt = document.getElementById('sealText').value || '\u58a8';
+  const sealClr = document.getElementById('sealColor').value;
 
-  // 宣纸底色
+  // 宣纸底色 + 纸纹噪点
   ctx.fillStyle = '#f5efe5';
   ctx.fillRect(0, 0, w, h);
+  for (let i = 0; i < 60; i++) {
+    const fx = Math.random() * w;
+    const fy = Math.random() * h;
+    const fr = 0.5 + Math.random() * 2;
+    ctx.beginPath();
+    ctx.arc(fx, fy, fr, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(180,170,155,' + (0.02 + Math.random() * 0.04) + ')';
+    ctx.fill();
+  }
 
-  // 画心
+  // 画心框线
   const margin = 30;
-  ctx.strokeStyle = '#d0c8b8';
-  ctx.lineWidth = 1;
+  ctx.strokeStyle = '#c8bfb0';
+  ctx.lineWidth = 0.5;
   ctx.strokeRect(margin, margin, w - margin * 2, h - margin * 2);
 
-  // 根据模板绘制背景画
+  // 画心背景
   switch(selectedTemplate) {
     case 'landscape':
-      // 山水背景
-      const grad = ctx.createLinearGradient(0, h*0.6, 0, h);
+      const grad = ctx.createLinearGradient(0, h*0.55, 0, h);
       grad.addColorStop(0, 'transparent');
-      grad.addColorStop(1, '#d0c8b8');
+      grad.addColorStop(1, '#d8d0c0');
       ctx.fillStyle = grad;
-      ctx.fillRect(margin+10, h*0.6, w-margin*2-20, h*0.3);
-
-      // 山峦
+      ctx.globalAlpha = 0.25;
+      ctx.fillRect(margin+10, h*0.55, w-margin*2-20, h*0.35);
       ctx.beginPath();
       ctx.moveTo(margin+10, h*0.55);
-      for (let x = margin+10; x < w-margin-10; x += 5) {
-        const y = h*0.55 - Math.sin((x-margin)/40) * 30 - Math.sin((x-margin)/80) * 20;
+      for (let x = margin+10; x < w-margin-10; x += 3) {
+        const y = h*0.55 - Math.sin((x-margin)/35)*25 - Math.sin((x-margin)/70)*18 - Math.sin((x-margin)/140)*12;
         ctx.lineTo(x, y);
       }
       ctx.lineTo(w-margin-10, h*0.6);
       ctx.lineTo(margin+10, h*0.6);
       ctx.closePath();
-      ctx.fillStyle = '#8a9aaa';
-      ctx.globalAlpha = 0.4;
+      ctx.fillStyle = '#7a8a9a';
+      ctx.globalAlpha = 0.2;
       ctx.fill();
-      ctx.globalAlpha = 1;
-
-      // 云雾
       ctx.beginPath();
-      ctx.ellipse(w*0.5, h*0.45, 60, 15, 0, 0, Math.PI*2);
+      ctx.ellipse(w*0.5, h*0.42, 50, 12, 0, 0, Math.PI*2);
       ctx.fillStyle = '#e8e0d0';
-      ctx.globalAlpha = 0.6;
+      ctx.globalAlpha = 0.35;
       ctx.fill();
       ctx.globalAlpha = 1;
       break;
 
     case 'bamboo':
       for (let i = 0; i < 7; i++) {
-        const bx = margin + 20 + i * ((w - margin*2 - 40) / 6);
+        const bx = margin + 18 + i * ((w - margin*2 - 36) / 6);
         ctx.beginPath();
-        ctx.moveTo(bx, h - margin - 10);
-        for (let y = h - margin - 10; y > margin + 10; y -= 5) {
-          const sway = Math.sin((h-margin-y) / 30) * 3;
-          ctx.lineTo(bx + sway, y);
+        ctx.moveTo(bx, h - margin - 8);
+        for (let y = h - margin - 8; y > margin + 8; y -= 4) {
+          ctx.lineTo(bx + Math.sin((h-margin-y)/28)*3, y);
         }
         ctx.strokeStyle = '#5a7a4a';
-        ctx.lineWidth = 2 + Math.random() * 1.5;
-        ctx.globalAlpha = 0.7;
+        ctx.lineWidth = 1.5 + (i % 3) * 0.5;
+        ctx.globalAlpha = 0.45;
         ctx.stroke();
-        // 竹叶
-        if (i % 2 === 0) {
+        if (i % 2 === 0 && i < 5) {
           for (let j = 0; j < 3; j++) {
-            const ly = margin + 40 + Math.random() * (h - margin*2 - 80);
+            const ly = margin + 35 + j * (h - margin*2 - 70) / 3;
             ctx.beginPath();
             ctx.moveTo(bx, ly);
-            ctx.quadraticCurveTo(bx - 15 + Math.random()*30, ly - 15, bx - 10 + Math.random()*20, ly - 8);
+            ctx.quadraticCurveTo(bx - 12 + Math.sin(j)*8, ly - 12, bx - 8 + Math.cos(j*2)*6, ly - 6);
             ctx.strokeStyle = '#4a6a3a';
-            ctx.lineWidth = 1.2;
+            ctx.lineWidth = 1;
             ctx.stroke();
           }
         }
@@ -2369,130 +2399,113 @@ function renderPoem() {
       break;
 
     case 'lotus':
-      // 荷叶
       for (let i = 0; i < 3; i++) {
-        const lx = w * (0.25 + i * 0.25);
-        const ly = h * (0.65 + Math.random() * 0.1);
+        const lx = w * (0.2 + i * 0.3);
+        const ly = h * (0.62 + Math.sin(i*1.5)*0.06);
         ctx.beginPath();
-        ctx.ellipse(lx, ly, 35, 18, 0.2, 0, Math.PI * 2);
+        ctx.ellipse(lx, ly, 30+i*5, 16+i*2, 0.2+i*0.1, 0, Math.PI*2);
         ctx.fillStyle = '#5a7a5a';
-        ctx.globalAlpha = 0.4;
+        ctx.globalAlpha = 0.25;
         ctx.fill();
       }
       ctx.globalAlpha = 1;
-      // 莲花
       ctx.beginPath();
       for (let p = 0; p < 8; p++) {
-        const angle = (p / 8) * Math.PI * 2;
-        const rx = w * 0.5 + Math.cos(angle) * 8;
-        const ry = h * 0.45 + Math.sin(angle) * 12;
-        if (p === 0) ctx.moveTo(rx, ry);
-        else ctx.lineTo(rx, ry);
+        const a = (p/8)*Math.PI*2;
+        const rx = w*0.48 + Math.cos(a)*10;
+        const ry = h*0.42 + Math.sin(a)*14;
+        p === 0 ? ctx.moveTo(rx, ry) : ctx.lineTo(rx, ry);
       }
       ctx.closePath();
-      ctx.fillStyle = '#e8b0b0';
-      ctx.globalAlpha = 0.7;
+      ctx.fillStyle = '#d8a0a0';
+      ctx.globalAlpha = 0.45;
       ctx.fill();
       ctx.globalAlpha = 1;
       break;
 
     case 'abstract':
-      for (let i = 0; i < 8; i++) {
+      for (let i = 0; i < 6; i++) {
         ctx.beginPath();
-        const ax = margin + 20 + Math.random() * (w - margin*2 - 40);
-        const ay = margin + 20 + Math.random() * (h - margin*2 - 40);
-        const ar = 10 + Math.random() * 40;
-        ctx.arc(ax, ay, ar, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(50,55,60,${0.15 + Math.random() * 0.35})`;
+        ctx.arc(margin+20+(i*37+13)%(w-margin*2-40), margin+20+(i*53+7)%(h-margin*2-40), 12+(i*19)%28, 0, Math.PI*2);
+        ctx.fillStyle = 'rgba(50,55,60,'+(0.08+i*0.03)+')';
         ctx.fill();
       }
       break;
   }
 
-  // 题诗 (竖排)
-  ctx.save();
-  ctx.translate(w * 0.72, margin + 20);
+  // 字体映射
+  const fontMap = {
+    xingshu: ['20px "Ma Shan Zheng"', '16px "Ma Shan Zheng"'],
+    kaishu: ['18px "ZCOOL XiaoWei"', '15px "ZCOOL XiaoWei"'],
+    caoshu: ['22px "Ma Shan Zheng"', '17px "Ma Shan Zheng"'],
+    lishu: ['18px "Noto Serif SC"', '15px "Noto Serif SC"'],
+  };
+  const [tFont, pFont] = fontMap[fontStyle] || fontMap.xingshu;
 
-  // 标题
-  ctx.font = `${fontStyle === 'cursive' ? '24px "Ma Shan Zheng"' : fontStyle === 'monospace' ? '22px "Noto Serif SC"' : '22px "ZCOOL XiaoWei"'}`;
+  // 题诗（右→左竖排）
+  ctx.save();
+  ctx.translate(w*0.68, margin+20);
+
+  ctx.font = tFont;
   ctx.fillStyle = color;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'top';
+  for (let i = 0; i < title.length && i < 10; i++) ctx.fillText(title[i], -i*30, 0);
 
-  // 竖排标题
-  for (let i = 0; i < title.length && i < 10; i++) {
-    ctx.fillText(title[i], 0, i * 28);
+  ctx.font = pFont;
+  for (let i = 0; i < poem.length && i < 40; i++) {
+    ctx.fillText(poem[i], -i*26, 12);
+    if (['\uff0c','\u3002','\u3001','\uff01','\uff1f','\uff1b','\uff1a'].includes(poem[i])) {
+      ctx.fillText('', -i*26, 24);
+    }
   }
-
-  // 诗句
-  ctx.font = `${fontStyle === 'cursive' ? '18px "Ma Shan Zheng"' : fontStyle === 'monospace' ? '16px "Noto Serif SC"' : '16px "ZCOOL XiaoWei"'}`;
-  const poemY = Math.min(title.length, 10) * 28 + 20;
-  for (let i = 0; i < poem.length && i < 28; i++) {
-    ctx.fillText(poem[i], 0, poemY + i * 24);
-  }
-
   ctx.restore();
 
   // 落款
   ctx.save();
-  const authorY = h - margin - 30;
-  ctx.font = '14px "Ma Shan Zheng"';
+  const authorY = h - margin - 25;
+  ctx.font = '16px "Ma Shan Zheng"';
   ctx.fillStyle = color;
   ctx.textAlign = 'left';
   ctx.textBaseline = 'bottom';
-  ctx.fillText(author, w - margin - 60, authorY);
+  ctx.globalAlpha = 0.85;
+  ctx.fillText(author, w-margin-70, authorY);
 
   // 印章
-  const sealX = w - margin - 40;
-  const sealY = authorY - 10;
-  const sealSize = 28;
-  ctx.strokeStyle = '#c23b22';
+  const sx = w-margin-42;
+  const sy = authorY-12;
+  const ss = 30;
+  ctx.strokeStyle = sealClr;
   ctx.lineWidth = 2;
-  ctx.fillStyle = '#c23b22';
-  ctx.globalAlpha = 0.7;
-
+  ctx.fillStyle = sealClr;
+  ctx.globalAlpha = 0.75;
+  ctx.font = '11px serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
   if (seal === 'circle') {
-    ctx.beginPath();
-    ctx.arc(sealX + sealSize/2, sealY - sealSize/2, sealSize/2, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.font = '10px serif';
-    ctx.fillStyle = '#c23b22';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('墨', sealX + sealSize/2, sealY - sealSize/2);
+    ctx.beginPath(); ctx.arc(sx+ss/2, sy-ss/2, ss/2, 0, Math.PI*2); ctx.stroke();
   } else if (seal === 'square') {
-    ctx.strokeRect(sealX, sealY - sealSize, sealSize, sealSize);
-    ctx.font = '12px serif';
-    ctx.fillStyle = '#c23b22';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('墨', sealX + sealSize/2, sealY - sealSize/2);
+    ctx.strokeRect(sx, sy-ss, ss, ss);
   } else {
-    // 随形
-    ctx.beginPath();
-    ctx.ellipse(sealX + sealSize/2, sealY - sealSize/2, sealSize/2 + 3, sealSize/2 - 2, 0.3, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.font = '11px serif';
-    ctx.fillStyle = '#c23b22';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('印', sealX + sealSize/2, sealY - sealSize/2);
+    ctx.beginPath(); ctx.ellipse(sx+ss/2, sy-ss/2, ss/2+3, ss/2-2, 0.3, 0, Math.PI*2); ctx.stroke();
   }
-
+  ctx.fillText(sealTxt, sx+ss/2, sy-ss/2);
   ctx.globalAlpha = 1;
   ctx.restore();
 }
 
+
 // 导出 PNG
 function exportPoem() {
-  renderPoem();
-  const canvas = document.getElementById('poetryCanvas');
+  renderPoem(true);
+  const c = document.getElementById('exportCanvas');
   const link = document.createElement('a');
-  link.download = `墨韵-${document.getElementById('poemTitle').value || '无题'}-${Date.now()}.png`;
-  link.href = canvas.toDataURL('image/png');
+  const title = document.getElementById('poemTitle').value || 'wuti';
+  const safeName = title.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '');
+  link.download = `ink-${safeName}.png`;
+  link.href = c.toDataURL('image/png');
   link.click();
 
-  // 更新统计数据
   const data = JSON.parse(localStorage.getItem('ink-data') || '{}');
   data.paintings = (data.paintings || 0) + 1;
   localStorage.setItem('ink-data', JSON.stringify(data));
@@ -2509,12 +2522,14 @@ setTimeout(() => {
 renderPoem();
 
 // 实时预览
-document.getElementById('poemTitle').addEventListener('input', renderPoem);
-document.getElementById('poemText').addEventListener('input', renderPoem);
-document.getElementById('poemFont').addEventListener('change', renderPoem);
-document.getElementById('poemColor').addEventListener('change', renderPoem);
-document.getElementById('poemAuthor').addEventListener('input', renderPoem);
-document.getElementById('sealStyle').addEventListener('change', renderPoem);
+document.getElementById('poemTitle').addEventListener('input', () => renderPoem());
+document.getElementById('poemText').addEventListener('input', () => renderPoem());
+document.getElementById('poemFont').addEventListener('change', () => renderPoem());
+document.getElementById('poemColor').addEventListener('change', () => renderPoem());
+document.getElementById('poemAuthor').addEventListener('input', () => renderPoem());
+document.getElementById('sealText').addEventListener('input', () => renderPoem());
+document.getElementById('sealColor').addEventListener('change', () => renderPoem());
+document.getElementById('sealStyle').addEventListener('change', () => renderPoem());
 
 // ==============================
 // 素笺留墨（留言墙）
