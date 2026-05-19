@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>墨韵 · 以代码为笔</title>
-<meta name="description" content="数字水墨诗画实验室 — 题诗作画 · 墨韵实验室 · 琴韵音景 · 素笺留墨">
+<title>墨韵 · AI 水墨诗画生成器</title>
+<meta name="description" content="AI 驱动的创意水墨工具 — 输入关键词，AI 即兴作诗，Canvas 渲染为水墨画，一键导出">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Ma+Shan+Zheng&family=ZCOOL+XiaoWei&family=Noto+Serif+SC:wght@400;700&display=swap" rel="stylesheet">
 <style>
@@ -859,6 +859,99 @@ section {
    ========================================================= */
 .poetry-section { padding-top: 4rem; }
 
+/* AI 题诗区 */
+.ai-poetry {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  border-radius: var(--radius-lg);
+  background: var(--theme-glare);
+  border: 1px solid var(--theme-glare);
+}
+
+.ai-poetry-header {
+  display: flex; align-items: center; gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+.ai-poetry-header span {
+  font-family: var(--font-title);
+  font-size: 1rem;
+  color: var(--theme-text);
+  letter-spacing: 0.1em;
+}
+.ai-poetry-header small {
+  font-size: 0.75rem;
+  color: var(--theme-text2);
+}
+
+.ai-poetry-row {
+  display: flex; gap: 0.8rem;
+  align-items: center;
+}
+
+.ai-poetry-row input {
+  flex: 1;
+  padding: 0.7rem 1rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--theme-glare);
+  background: var(--theme-surface);
+  color: var(--theme-text);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+.ai-poetry-row input:focus {
+  border-color: var(--theme-accent);
+}
+.ai-poetry-row input::placeholder {
+  color: var(--theme-text2);
+  opacity: 0.6;
+}
+
+/* 研墨动画 */
+.inking-indicator {
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--theme-text2);
+  letter-spacing: 0.1em;
+  margin-top: 0.6rem;
+}
+.inking-indicator.active { display: flex; }
+
+.ink-mill {
+  width: 18px; height: 18px;
+  border: 2px solid var(--theme-accent);
+  border-radius: 50%;
+  animation: inkGrind 1.2s ease-in-out infinite;
+}
+.ink-mill::before {
+  content: '';
+  display: block;
+  width: 6px; height: 6px;
+  background: var(--theme-accent);
+  border-radius: 50%;
+  margin: 4px auto 0;
+  animation: inkPulse 1.2s ease-in-out infinite;
+}
+@keyframes inkGrind {
+  0%, 100% { transform: rotate(0deg); border-color: var(--theme-accent); }
+  50% { transform: rotate(360deg); border-color: var(--theme-accent2); }
+}
+@keyframes inkPulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+.ai-error {
+  font-size: 0.8rem;
+  color: var(--theme-accent);
+  margin-top: 0.4rem;
+  display: none;
+}
+.ai-error.visible { display: block; }
+
 .poetry-templates {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -1116,7 +1209,7 @@ section {
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 1.5rem;
   margin-top: 2rem;
 }
@@ -1184,7 +1277,7 @@ footer {
   .features { grid-template-columns: 1fr; }
   .poetry-templates { grid-template-columns: repeat(2, 1fr); }
   .poetry-controls { grid-template-columns: 1fr; }
-  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .stats-grid { grid-template-columns: repeat(3, 1fr); }
   .about-stats { grid-template-columns: repeat(3, 1fr); }
   .theme-picker-panel { padding: 1.5rem; }
   .theme-options { gap: 0.5rem; }
@@ -1500,7 +1593,7 @@ footer {
 
 <!-- HERO -->
 <section class="hero">
-  <div class="hero-badge">✦ 以代码为笔·以屏幕为宣纸</div>
+  <div class="hero-badge">✦ AI 驱动 · 水墨诗画生成工具</div>
   <h1 class="hero-title">
     墨<span class="seal">韵</span>
   </h1>
@@ -1523,13 +1616,13 @@ footer {
 <!-- ABOUT -->
 <section id="about" class="about">
   <div class="section-label">─ 墨境</div>
-  <h2 class="section-title">墨染乾坤</h2>
-  <p class="section-subtitle">当千年水墨遇见 WebGL 粒子，每一滴墨都在数字世界中重新晕染、绽放，化作无界无岸的东方意境。</p>
+  <h2 class="section-title">AI 墨染乾坤</h2>
+  <p class="section-subtitle">当千年水墨遇见 AI 大模型，输入一个词就能生成一首诗、一幅画——代码与笔墨共生，传统与智能共振。</p>
 
   <div class="about-grid">
     <div class="about-text">
-      <p>「墨韵」是一座数字水墨诗画实验室。我们用 Three.js 粒子系统模拟墨汁在宣纸上自然渗透的纹理，以 Canvas 2D 重现笔触的枯湿浓淡与飞白韵律。</p>
-      <p>从题诗作画到墨韵万象，从素笺留墨到琴韵音景——每一个模块都在追问同一个命题：当代码遇见笔墨，会生出怎样的山水？</p>
+      <p>「墨韵」将古典水墨美学与 AI 生成能力合二为一。输入关键词或情绪描述，AI 即兴创作古典题画诗，随后由 Canvas 引擎渲染为水墨画心。从落笔到成诗，不过一念之间。</p>
+      <p>背后的技术链：Cloudflare Workers 代理 → DeepSeek 大模型生成 → Canvas 2D 水墨渲染 → 一键导出 PNG。整套流程在边缘计算节点上完成，毫秒级响应。</p>
     </div>
     <div class="about-visual">
       <div class="ink-preview" id="inkPreview"></div>
@@ -1562,7 +1655,7 @@ footer {
     <div class="feature-card" onclick="document.getElementById('poetry').scrollIntoView({behavior:'smooth'})">
       <span class="feature-icon">🖼</span>
       <h3 class="feature-name">题诗作画</h3>
-      <p class="feature-desc">选画心、题诗句、落款章。在四幅水墨意境中，创作属于你的诗画合璧。</p>
+      <p class="feature-desc">输入关键词，AI 即兴创作古典诗句，自动填入画心。也可手动题诗、落款、盖章。</p>
     </div>
     <div class="feature-card" onclick="toggleLab()">
       <span class="feature-icon">🖌</span>
@@ -1586,7 +1679,7 @@ footer {
 <section id="poetry" class="poetry-section">
   <div class="section-label">─ 题诗作画</div>
   <h2 class="section-title">题诗作画</h2>
-  <p class="section-subtitle">选画心 → 题诗句 → 落朱砂 → 导出藏之。在方寸之间，与千年文人共一脉墨意。</p>
+  <p class="section-subtitle">手动题诗，或交给 AI——输入一个词，AI 即兴创作古典诗句，自动填入画心。</p>
 
   <div class="poetry-templates" id="poetryTemplates">
     <div class="template-card active" data-template="landscape">
@@ -1605,6 +1698,23 @@ footer {
       <canvas id="tmplAbstract"></canvas>
       <div class="template-label">泼 墨</div>
     </div>
+  </div>
+
+  <!-- AI 题诗入口 -->
+  <div class="ai-poetry">
+    <div class="ai-poetry-header">
+      <span>🤖 AI 题诗</span>
+      <small>输入关键词或情绪，AI 为你即兴创作</small>
+    </div>
+    <div class="ai-poetry-row">
+      <input type="text" id="aiKeyword" maxlength="15" placeholder="如：秋思、江南烟雨、大漠孤烟…" onkeydown="if(event.key==='Enter')generateAIPoem()">
+      <button class="btn btn-primary" onclick="generateAIPoem()" id="aiBtn">灵感生成</button>
+    </div>
+    <div class="inking-indicator" id="inkingIndicator">
+      <div class="ink-mill"></div>
+      <span>研墨中… AI 正在构思诗句</span>
+    </div>
+    <div class="ai-error" id="aiError"></div>
   </div>
 
   <div class="poetry-controls">
@@ -1691,7 +1801,7 @@ footer {
 <section id="stats" class="stats-section">
   <div class="section-label">─ 墨客</div>
   <h2 class="section-title">墨客知音</h2>
-  <p class="section-subtitle">看看多少同好在墨韵中流连忘返。</p>
+  <p class="section-subtitle">看看有多少同好在墨韵中流连忘返，AI 又为谁生了诗。</p>
 
   <div class="stats-grid">
     <div class="stat-card">
@@ -1701,6 +1811,10 @@ footer {
     <div class="stat-card">
       <div class="stat-number" id="totalPaintings">0</div>
       <div class="stat-label">题画</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" id="totalAIPoems">0</div>
+      <div class="stat-label">AI 题诗</div>
     </div>
     <div class="stat-card">
       <div class="stat-number" id="totalMessages">0</div>
@@ -1760,7 +1874,7 @@ footer {
 <!-- 页脚 -->
 <footer>
   <div class="footer-brand">墨 韵</div>
-  <div class="footer-sub">以代码为笔 · 以屏幕为宣纸</div>
+  <div class="footer-sub">AI 水墨 · 诗画生成工具</div>
   <div class="footer-seal">墨</div>
   <div style="margin-top: 2rem; font-size: 0.7rem; color: var(--theme-text2); letter-spacing: 0.15em;">
     诗画合璧 · 万象归墨
@@ -1973,6 +2087,7 @@ function updateStats() {
 
   document.getElementById('totalVisits').textContent = data.visits;
   document.getElementById('totalPaintings').textContent = data.paintings || 0;
+  document.getElementById('totalAIPoems').textContent = data.aiCount || 0;
   document.getElementById('totalMessages').textContent = data.messages || 0;
   document.getElementById('totalTime').textContent = elapsed;
   document.getElementById('statVisits').textContent = data.visits;
@@ -2092,6 +2207,76 @@ document.querySelectorAll('.template-card').forEach(card => {
     renderPoem();
   });
 });
+
+// ==============================
+// AI 题诗生成 —— 调用 Worker API
+// ==============================
+const AI_API_URL = 'https://ink-studio-api.oldking-yes.workers.dev';
+
+function generateAIPoem() {
+  const keyword = document.getElementById('aiKeyword').value.trim();
+  if (!keyword) {
+    showAIError('请输入关键词或情绪描述');
+    return;
+  }
+
+  const btn = document.getElementById('aiBtn');
+  const indicator = document.getElementById('inkingIndicator');
+  const errorEl = document.getElementById('aiError');
+
+  // 进入加载状态
+  btn.disabled = true;
+  btn.textContent = '研墨中…';
+  indicator.classList.add('active');
+  errorEl.classList.remove('visible');
+  errorEl.textContent = '';
+
+  fetch(AI_API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ keyword }),
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.error) {
+        showAIError(data.error);
+        return;
+      }
+
+      // 自动填入表单
+      document.getElementById('poemTitle').value = data.title || '';
+      document.getElementById('poemText').value = data.poem || '';
+      document.getElementById('poemAuthor').value = data.author || 'AI 墨客';
+
+      // 触发渲染
+      renderPoem();
+
+      // 更新 AI 生成统计
+      incrementAICount();
+    })
+    .catch(err => {
+      showAIError('网络错误，请稍后重试');
+      console.error('AI poem error:', err);
+    })
+    .finally(() => {
+      btn.disabled = false;
+      btn.textContent = '灵感生成';
+      indicator.classList.remove('active');
+    });
+}
+
+function showAIError(msg) {
+  const el = document.getElementById('aiError');
+  el.textContent = '✕ ' + msg;
+  el.classList.add('visible');
+}
+
+function incrementAICount() {
+  const data = JSON.parse(localStorage.getItem('ink-data') || '{}');
+  data.aiCount = (data.aiCount || 0) + 1;
+  localStorage.setItem('ink-data', JSON.stringify(data));
+  updateStats();
+}
 
 // 渲染题诗
 function renderPoem() {
