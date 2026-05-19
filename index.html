@@ -2211,7 +2211,10 @@ document.querySelectorAll('.template-card').forEach(card => {
 // ==============================
 // AI 题诗生成 —— 调用 Worker API
 // ==============================
-const AI_API_URL = 'https://ink-studio-api.oldking-yes.workers.dev';
+// AI API 地址 —— 部署后替换为你的实际地址
+// Cloudflare Workers: https://ink-studio-api.你的用户名.workers.dev
+// Vercel:             https://你的项目名.vercel.app/api/generate-poem
+const AI_API_URL = '/api/generate-poem';
 
 function generateAIPoem() {
   const keyword = document.getElementById('aiKeyword').value.trim();
