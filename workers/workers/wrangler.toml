@@ -1,0 +1,6 @@
+name = "ink-studio-api"
+main = "src/index.js"
+compatibility_date = "2025-05-01"
+
+# 环境变量（通过 wrangler secret put 注入）
+# DEEPSEEK_API_KEY = "sk-xxx"
